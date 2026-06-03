@@ -147,6 +147,28 @@ sequenceDiagram
 
 ---
 
+## 🛡️ Privacy-Preserving Data Architecture & Separation of Concerns
+
+AlgoLens uses a decentralized system design that isolates user-identifiable data on the client side. This design prevents the server backend from becoming a target for database breaches or handling sensitive authentication credentials (like GitHub PATs).
+
+### 1. Client-Side State Generation (No User Accounts on Backend)
+* **Decentralized Data Storage**: All details about which questions you solved, your attempts, streaks, and personal configurations are saved locally in the browser’s `chrome.storage.local` sandbox.
+* **Direct-to-GitHub Commits**: When a solution is pushed, or when the README index table is updated, the Chrome Extension builds the Markdown documents entirely client-side and commits them directly to GitHub’s REST API. The backend server never knows what solutions exist in your repository.
+
+### 2. Stateless SVG Rendering via Query Parameters
+To display dynamic profile cards on your GitHub README, the backend’s `GET /api/svg/stats` endpoint uses a **stateless, parameter-driven rendering strategy**:
+* **URL Parameter Binding**: Instead of querying a backend database to fetch your solved counts, the extension generates a Markdown image tag containing your actual statistics directly in the request query parameters:
+  ```markdown
+  ![AlgoLens Stats](https://<backend-url>/api/svg/stats?repo=user/repo&easy=12&medium=8&hard=2&streak=5)
+  ```
+* **Instant Dynamic Compilation**: When GitHub's camo proxy requests the card image, the FastAPI backend reads these numbers directly from the query parameters, binds them to the SVG template, and returns the image. No database lookups or user authentication are required to fetch your specific statistics.
+
+### 3. Aggregated Community Benchmarks
+* **Database Purpose**: The database on the backend server only stores anonymized telemetry payloads (solve duration, attempts, language, problem slug).
+* **Comparative Queries**: When rendering the card, the server performs a quick, indexed query on the `problems` table to retrieve the community's global averages (e.g., average solve duration for `two-sum`). It overlays these benchmarks onto your custom card so you can compare your speed against the community in real-time.
+
+---
+
 ## 🔒 Security & Privacy Model
 
 1. **Token Seclusion**: Your GitHub Personal Access Token (PAT) is stored exclusively in `chrome.storage.local`. It is only read inside the Extension's Background Service Worker and is passed directly to the `api.github.com` endpoints via secure HTTP headers. It is **never** sent to, processed by, or cached in the AlgoLens Telemetry backend database.
