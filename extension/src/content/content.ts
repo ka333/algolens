@@ -1,11 +1,13 @@
-// AlgoLens Content Script - Step 6: Extract Code and Results from Intercepted Payload
+// AlgoLens Content Script - Step 7: Attempts Tracker & Status Checkers
 let activeTimeSeconds = 0;
 let lastActiveTimestamp = Date.now();
 let isTimerActive = true;
 let isIdle = false;
 let idleTimer: number | null = null;
 let timerInterval: number | null = null;
+
 let currentProblemSlug = '';
+let attemptCount = 0;
 
 function getProblemSlug(): string {
   const match = window.location.pathname.match(/\/problems\/([^/]+)/);
@@ -162,7 +164,7 @@ async function fetchProblemMetadata(slug: string): Promise<GraphQLMetadata> {
   }
 }
 
-// Listen for messages from page context, extract solution code & details
+// Track attempts and status values (Accepted, Wrong Answer, TLE, etc.)
 window.addEventListener('message', async (event) => {
   if (event.source !== window || !event.data || event.data.type !== 'ALGOLENS_SUBMISSION_CHECK') {
     return;
@@ -171,9 +173,21 @@ window.addEventListener('message', async (event) => {
   const checkResult = event.data.data;
   
   if (checkResult.state === 'SUCCESS') {
-    const code = checkResult.code; // Extract Monaco editor code submitted to LeetCode API
-    const lang = checkResult.lang; // Extract code language
-    console.log('AlgoLens: Extracted solution code successfully. Length:', code ? code.length : 0, 'Lang:', lang);
+    const slug = getProblemSlug();
+    
+    if (slug !== currentProblemSlug) {
+      currentProblemSlug = slug;
+      attemptCount = 0;
+    }
+
+    attemptCount++;
+    const isAccepted = checkResult.status_msg === 'Accepted';
+
+    console.log(`AlgoLens Submission Intercepted: Attempts=${attemptCount}, Status=${checkResult.status_msg}`);
+    
+    if (isAccepted) {
+      console.log('AlgoLens: Problem Solved! Packaging details...');
+    }
   }
 });
 
