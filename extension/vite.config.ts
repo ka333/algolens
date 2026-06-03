@@ -6,6 +6,9 @@ export default defineConfig({
   plugins: [react()],
   build: {
     outDir: 'dist',
+    minify: 'esbuild', // Optimized minification for fast builds
+    sourcemap: false,   // Disable sourcemaps for production bundle size reductions
+    treeshake: true,    // Enable dead-code elimination
     rollupOptions: {
       input: {
         popup: resolve(__dirname, 'index.html'),
