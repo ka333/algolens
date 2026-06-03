@@ -2,6 +2,7 @@
   "name": "algolens-extension",
   "private": true,
   "version": "0.1.0",
+  "author": "Karthikeya Akhandam",
   "type": "module",
   "scripts": {
     "dev": "vite",
