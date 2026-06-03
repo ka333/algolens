@@ -2,8 +2,8 @@
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    # Defaults to local PostgreSQL, overridden in production by Render environment variables
-    database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/algolens"
+    # Defaults to local SQLite, overridden in production/development by environment variables
+    database_url: str = "sqlite+aiosqlite:///./algolens.db"
 
     class Config:
         env_file = ".env"
