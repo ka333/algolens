@@ -315,3 +315,129 @@ body {
 .onboarding-step {
   margin-bottom: 24px;
 }
+
+/* Bulk Sync View Styles */
+.progress-container {
+  margin: 12px 0;
+}
+
+.progress-track {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+.progress-bar {
+  height: 100%;
+  background: var(--accent-gradient);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.log-box {
+  width: 100%;
+  height: 110px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 8px;
+  font-family: monospace;
+  font-size: 11px;
+  color: var(--text-secondary);
+  overflow-y: auto;
+  margin-top: 10px;
+  white-space: pre-wrap;
+  line-height: 1.4;
+}
+
+.problems-table-container {
+  max-height: 180px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  margin-top: 12px;
+}
+
+.problems-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.problems-table th, .problems-table td {
+  padding: 6px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.problems-table th {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.problems-table tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.difficulty-badge {
+  font-size: 9px;
+  font-weight: 600;
+  padding: 2px 4px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.difficulty-badge.easy {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success);
+}
+
+.difficulty-badge.medium {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--warning);
+}
+
+.difficulty-badge.hard {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger);
+}
+
+.status-text {
+  font-size: 11px;
+}
+
+.status-text.ready {
+  color: var(--text-secondary);
+}
+
+.status-text.syncing {
+  color: var(--accent-blue);
+  animation: pulse 1.5s infinite;
+}
+
+.status-text.completed {
+  color: var(--success);
+  font-weight: 500;
+}
+
+.status-text.failed {
+  color: var(--danger);
+}
+
+.status-text.skipped {
+  color: var(--text-muted);
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+

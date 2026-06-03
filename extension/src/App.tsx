@@ -4,10 +4,11 @@ import { DashboardView } from './popup/DashboardView';
 import { GitHubView } from './popup/GitHubView';
 import { SettingsView } from './popup/SettingsView';
 import { StatsView } from './popup/StatsView';
+import { BulkSyncView } from './popup/BulkSyncView';
 import { getStorageData, STORAGE_KEYS } from './utils/storage';
 
 // Type definitions for views
-type TabType = 'dashboard' | 'github' | 'stats' | 'settings';
+type TabType = 'dashboard' | 'stats' | 'bulksync' | 'github' | 'settings';
 
 function App() {
   const [activeTab, setActiveTab] = useState<TabType>('github');
@@ -78,6 +79,14 @@ function App() {
           Stats
         </button>
         <button 
+          className={`tab-btn ${activeTab === 'bulksync' ? 'active' : ''}`}
+          onClick={() => isConnected && setActiveTab('bulksync')}
+          disabled={!isConnected}
+          style={{ opacity: isConnected ? 1 : 0.5, cursor: isConnected ? 'pointer' : 'not-allowed' }}
+        >
+          Bulk Sync
+        </button>
+        <button 
           className={`tab-btn ${activeTab === 'github' ? 'active' : ''}`}
           onClick={() => setActiveTab('github')}
         >
@@ -95,6 +104,7 @@ function App() {
       <main className="view-container">
         {activeTab === 'dashboard' && <DashboardView />}
         {activeTab === 'stats' && <StatsView />}
+        {activeTab === 'bulksync' && <BulkSyncView />}
         {activeTab === 'github' && <GitHubView onConnectionChange={handleConnectionChange} />}
         {activeTab === 'settings' && <SettingsView />}
       </main>
