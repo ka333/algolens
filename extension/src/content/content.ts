@@ -1,4 +1,4 @@
-// AlgoLens Content Script - Step 7: Attempts Tracker & Status Checkers
+// AlgoLens Content Script - Time Tracking, Attempt Tracking, and Submission Detection
 let activeTimeSeconds = 0;
 let lastActiveTimestamp = Date.now();
 let isTimerActive = true;
@@ -9,11 +9,13 @@ let timerInterval: number | null = null;
 let currentProblemSlug = '';
 let attemptCount = 0;
 
+// Get problem slug from current window URL
 function getProblemSlug(): string {
   const match = window.location.pathname.match(/\/problems\/([^/]+)/);
   return match ? match[1] : '';
 }
 
+// 1. ACTIVE TIMER SYSTEM
 function startTimer() {
   stopTimer();
   activeTimeSeconds = 0;
@@ -51,6 +53,7 @@ function resumeTimer() {
   resetIdleTimer();
 }
 
+// Inactivity/Idle detection
 function resetIdleTimer() {
   if (isIdle) {
     isIdle = false;
@@ -61,11 +64,13 @@ function resetIdleTimer() {
     window.clearTimeout(idleTimer);
   }
 
+  // Set idle timeout to 2 minutes (120000 ms)
   idleTimer = window.setTimeout(() => {
     isIdle = true;
   }, 120000);
 }
 
+// Add window focus & activity listeners
 function setupActivityListeners() {
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
@@ -78,12 +83,14 @@ function setupActivityListeners() {
   window.addEventListener('blur', pauseTimer);
   window.addEventListener('focus', resumeTimer);
 
+  // User input listener resets the idle state
   const inputs = ['mousemove', 'keydown', 'click', 'scroll'];
   inputs.forEach(event => {
     window.addEventListener(event, resetIdleTimer, { passive: true });
   });
 }
 
+// 2. NETWORK INTERCEPTOR INJECTION
 function injectNetworkInterceptor() {
   const scriptContent = `
     (function() {
@@ -93,6 +100,7 @@ function injectNetworkInterceptor() {
         const url = args[0];
         
         if (typeof url === 'string') {
+          // Intercept submission checking requests
           if (url.includes('/submissions/detail/') && url.includes('/check/')) {
             const clone = response.clone();
             clone.json().then(data => {
@@ -115,6 +123,7 @@ function injectNetworkInterceptor() {
   script.remove();
 }
 
+// 3. FETCH METADATA VIA GRAPHQL
 interface GraphQLMetadata {
   title: string;
   difficulty: string;
@@ -156,6 +165,7 @@ async function fetchProblemMetadata(slug: string): Promise<GraphQLMetadata> {
     };
   } catch (err) {
     console.error('Failed to fetch problem metadata via GraphQL:', err);
+    // Fallback based on URL/DOM
     return {
       title: slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
       difficulty: 'Unknown',
@@ -164,7 +174,7 @@ async function fetchProblemMetadata(slug: string): Promise<GraphQLMetadata> {
   }
 }
 
-// Track attempts and status values (Accepted, Wrong Answer, TLE, etc.)
+// 4. MAIN INGESTION PORT & MESSAGING (Commit 20 Coordinate messaging)
 window.addEventListener('message', async (event) => {
   if (event.source !== window || !event.data || event.data.type !== 'ALGOLENS_SUBMISSION_CHECK') {
     return;
@@ -183,14 +193,42 @@ window.addEventListener('message', async (event) => {
     attemptCount++;
     const isAccepted = checkResult.status_msg === 'Accepted';
 
-    console.log(`AlgoLens Submission Intercepted: Attempts=${attemptCount}, Status=${checkResult.status_msg}`);
-    
+    console.log(`AlgoLens: Submission check completed. Status: ${checkResult.status_msg}. Attempts: ${attemptCount}`);
+
     if (isAccepted) {
-      console.log('AlgoLens: Problem Solved! Packaging details...');
+      stopTimer();
+      const metadata = await fetchProblemMetadata(slug);
+
+      const payload = {
+        slug: slug,
+        title: metadata.title,
+        difficulty: metadata.difficulty,
+        tags: metadata.tags,
+        code: checkResult.code,
+        language: checkResult.lang,
+        runtime: checkResult.runtime,
+        memory: checkResult.memory,
+        solveTimeSeconds: activeTimeSeconds === 0 ? 1 : activeTimeSeconds,
+        attempts: attemptCount,
+        solvedAt: new Date().toISOString()
+      };
+
+      // Coordinate content-to-background runtime messaging (Commit 20)
+      chrome.runtime.sendMessage({
+        action: 'SUBMISSION_ACCEPTED',
+        payload: payload
+      }, (response) => {
+        console.log('AlgoLens: Background response received:', response);
+      });
+
+      // Reset for next solve/retries
+      attemptCount = 0;
+      startTimer();
     }
   }
 });
 
+// Initialization
 function init() {
   const slug = getProblemSlug();
   if (slug) {
@@ -198,11 +236,29 @@ function init() {
     startTimer();
     setupActivityListeners();
     injectNetworkInterceptor();
+    console.log(`AlgoLens: Active time tracking started for problem: ${slug}`);
   }
 }
 
+// Wait for document load
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', init);
 } else {
   init();
 }
+
+// Handle SPA route changes on LeetCode
+let lastUrl = window.location.href;
+new MutationObserver(() => {
+  const currentUrl = window.location.href;
+  if (currentUrl !== lastUrl) {
+    lastUrl = currentUrl;
+    const newSlug = getProblemSlug();
+    if (newSlug && newSlug !== currentProblemSlug) {
+      console.log(`AlgoLens: Navigated to new problem ${newSlug}. Resetting trackers.`);
+      currentProblemSlug = newSlug;
+      attemptCount = 0;
+      startTimer();
+    }
+  }
+}).observe(document, { subtree: true, childList: true });
