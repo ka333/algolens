@@ -3,10 +3,11 @@ import './styles/popup.css';
 import { DashboardView } from './popup/DashboardView';
 import { GitHubView } from './popup/GitHubView';
 import { SettingsView } from './popup/SettingsView';
+import { StatsView } from './popup/StatsView';
 import { getStorageData, STORAGE_KEYS } from './utils/storage';
 
 // Type definitions for views
-type TabType = 'dashboard' | 'github' | 'settings';
+type TabType = 'dashboard' | 'github' | 'stats' | 'settings';
 
 function App() {
   const [activeTab, setActiveTab] = useState<TabType>('github');
@@ -69,6 +70,14 @@ function App() {
           Dashboard
         </button>
         <button 
+          className={`tab-btn ${activeTab === 'stats' ? 'active' : ''}`}
+          onClick={() => isConnected && setActiveTab('stats')}
+          disabled={!isConnected}
+          style={{ opacity: isConnected ? 1 : 0.5, cursor: isConnected ? 'pointer' : 'not-allowed' }}
+        >
+          Stats
+        </button>
+        <button 
           className={`tab-btn ${activeTab === 'github' ? 'active' : ''}`}
           onClick={() => setActiveTab('github')}
         >
@@ -85,6 +94,7 @@ function App() {
       {/* Main Content Area */}
       <main className="view-container">
         {activeTab === 'dashboard' && <DashboardView />}
+        {activeTab === 'stats' && <StatsView />}
         {activeTab === 'github' && <GitHubView onConnectionChange={handleConnectionChange} />}
         {activeTab === 'settings' && <SettingsView />}
       </main>
