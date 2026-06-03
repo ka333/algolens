@@ -34,6 +34,11 @@ export function DashboardView() {
   }, []);
 
   const totalSolved = stats.easy + stats.medium + stats.hard;
+  
+  // Calculate relative percentages for visual progress bars
+  const easyPct = totalSolved > 0 ? (stats.easy / totalSolved) * 100 : 0;
+  const mediumPct = totalSolved > 0 ? (stats.medium / totalSolved) * 100 : 0;
+  const hardPct = totalSolved > 0 ? (stats.hard / totalSolved) * 100 : 0;
 
   return (
     <div>
@@ -51,23 +56,41 @@ export function DashboardView() {
         </div>
       </div>
 
-      {/* Difficulty breakdown */}
+      {/* Difficulty breakdown with Progress Bars */}
       <div className="card" style={{ marginBottom: '14px' }}>
         <h4 className="card-title" style={{ fontSize: '13px', borderBottom: '1px solid var(--border-color)', paddingBottom: '6px', marginBottom: '10px' }}>
           Difficulty Breakdown
         </h4>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
-          <div style={{ display: 'flex', justifyContent: 'between', alignItems: 'center' }}>
-            <span style={{ color: 'var(--success)', flex: 1 }}>Easy</span>
-            <span style={{ fontWeight: '600' }}>{stats.easy}</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '12px' }}>
+          {/* Easy */}
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+              <span style={{ color: 'var(--success)' }}>Easy</span>
+              <span style={{ fontWeight: '600' }}>{stats.easy}</span>
+            </div>
+            <div style={{ height: '6px', width: '100%', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${easyPct}%`, background: 'var(--success)', borderRadius: '3px', transition: 'width 0.5s ease-out' }}></div>
+            </div>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'between', alignItems: 'center' }}>
-            <span style={{ color: 'var(--warning)', flex: 1 }}>Medium</span>
-            <span style={{ fontWeight: '600' }}>{stats.medium}</span>
+          {/* Medium */}
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+              <span style={{ color: 'var(--warning)' }}>Medium</span>
+              <span style={{ fontWeight: '600' }}>{stats.medium}</span>
+            </div>
+            <div style={{ height: '6px', width: '100%', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${mediumPct}%`, background: 'var(--warning)', borderRadius: '3px', transition: 'width 0.5s ease-out' }}></div>
+            </div>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'between', alignItems: 'center' }}>
-            <span style={{ color: 'var(--danger)', flex: 1 }}>Hard</span>
-            <span style={{ fontWeight: '600' }}>{stats.hard}</span>
+          {/* Hard */}
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+              <span style={{ color: 'var(--danger)' }}>Hard</span>
+              <span style={{ fontWeight: '600' }}>{stats.hard}</span>
+            </div>
+            <div style={{ height: '6px', width: '100%', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${hardPct}%`, background: 'var(--danger)', borderRadius: '3px', transition: 'width 0.5s ease-out' }}></div>
+            </div>
           </div>
         </div>
       </div>
