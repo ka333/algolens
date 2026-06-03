@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "AlgoLens",
+  "version": "0.1.0",
+  "description": "Privacy-first Chrome extension for LeetCode analytics, GitHub automation, and benchmarking.",
+  "permissions": [
+    "storage",
+    "notifications"
+  ],
+  "host_permissions": [
+    "https://leetcode.com/*",
+    "https://api.github.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://leetcode.com/problems/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "index.html",
+    "default_title": "AlgoLens Panel"
+  }
+}
