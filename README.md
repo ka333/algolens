@@ -75,3 +75,18 @@ To allow AlgoLens to sync solutions directly to your repository:
    ```
 5. In **Environment Variables**, add:
    - `DATABASE_URL`: Your connection string from NeonDB (using the `postgresql+asyncpg://` schema).
+   - `CORS_ORIGINS`: A comma-separated list of allowed origins (use `*` for testing, or set specific domains/extension origins for production).
+
+---
+
+## 🌐 Testing Local Development vs. Production
+
+- **Local Development / Testing**:
+  - Run `npm run build:dev` inside `/extension` to compile the extension targeting your local server (`http://localhost:8000`).
+  - Run `uvicorn app.main:app --reload` inside `/backend` (which automatically uses the `.env` settings targeting local SQLite and `CORS_ORIGINS=*`).
+  - **Important**: When you sync solutions, the README image URL will point to your local machine (`http://localhost:8000/api/svg/stats?...`). When you open that link in a new browser tab, **it will load the SVG card perfectly**. However, on the GitHub website page itself, the image will appear broken because GitHub's servers cannot reach your computer's `localhost` to proxy the image.
+- **Production / Live Deployment**:
+  - Deploy your backend to Render and set the environment variables.
+  - Update `VITE_BACKEND_URL` in `/extension/.env` to point to your live Render server address (e.g. `https://my-backend.onrender.com`).
+  - Run `npm run build` in `/extension` to compile the production bundle.
+  - Solutions synced after this will have cards pointing to Render, allowing GitHub to fetch and render the cards on your profile page.
