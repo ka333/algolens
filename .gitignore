@@ -43,3 +43,7 @@ Thumbs.db
 
 # Local files
 local/
+
+# Keys
+*.pem
+private_key.pem

@@ -1,6 +1,7 @@
 {
   "manifest_version": 3,
   "name": "AlgoLens",
+  "key": "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCzGdaPmKKRMiXeRztfo6ER9bw1s87hXCxm0i1lTA8gd83Dbj6EA9Dy0tK3XltroftU1/0PHUr0V1h04QkVS2s1st9E9WtVdbdAYW/A58idkf1SqFEVTq3MGT+vUzliXfu9sU5xl6HlXIvYsoj67m3+rppTJQPpP0Z08qnuQlqE4QIDAQAB",
   "version": "0.1.0",
   "description": "Privacy-first Chrome extension for LeetCode analytics, GitHub automation, and benchmarking.",
   "permissions": [
