@@ -59,7 +59,7 @@ export const fetchUserRepos = async (token: string): Promise<GitHubRepo[]> => {
   }));
 };
 
-// GET Git file details and SHA hashes (Commit 25)
+// GET Git file details and SHA hashes
 export interface GitHubFileDetails {
   sha: string;
   content?: string;
@@ -97,4 +97,42 @@ export const getGitHubFileDetails = async (
     console.error(`Error checking file ${path} on GitHub:`, err);
     return null;
   }
+};
+
+// Create or update a file on GitHub (Commit 26)
+function toBase64(str: string): string {
+  return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) => {
+    return String.fromCharCode(parseInt(p1, 16));
+  }));
+}
+
+export const createOrUpdateGitHubFile = async (
+  token: string,
+  repo: string,
+  path: string,
+  content: string,
+  sha: string | null,
+  message: string
+): Promise<string> => {
+  const response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      message,
+      content: toBase64(content),
+      sha: sha || undefined,
+    }),
+  });
+
+  if (!response.ok) {
+    const errData = await response.json().catch(() => ({}));
+    throw new Error(errData.message || `Failed to commit file ${path}`);
+  }
+
+  const data = await response.json();
+  return data.content.sha;
 };
