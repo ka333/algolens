@@ -41,7 +41,6 @@ async function processQueue() {
   processQueue(); // Loop
 }
 
-// Map programming languages to their standard file extensions
 const languageExtensions: Record<string, string> = {
   cpp: 'cpp',
   java: 'java',
@@ -61,7 +60,6 @@ const languageExtensions: Record<string, string> = {
   sql: 'sql'
 };
 
-// Build the custom commit message based on template
 function compileCommitMessage(template: string, payload: any): string {
   return template
     .replace(/{title}/g, payload.title)
@@ -72,7 +70,6 @@ function compileCommitMessage(template: string, payload: any): string {
 
 // Coordinate the full repository sync
 async function handleSyncToGitHub(payload: any) {
-  // 1. Fetch user credentials & configuration from storage
   const config = await getStorageData([
     STORAGE_KEYS.GITHUB_TOKEN,
     STORAGE_KEYS.GITHUB_REPO,
@@ -95,7 +92,6 @@ async function handleSyncToGitHub(payload: any) {
 
   console.log(`AlgoLens: Beginning GitHub sync for ${payload.title}`);
 
-  // 2. Save solve stats locally in chrome.storage
   const updatedStats = await recordSubmissionStats({
     slug: payload.slug,
     title: payload.title,
@@ -108,7 +104,6 @@ async function handleSyncToGitHub(payload: any) {
     solvedAt: payload.solvedAt
   });
 
-  // 3. Stage 1: Commit the solution file
   const ext = languageExtensions[payload.language.toLowerCase()] || 'txt';
   const solutionPath = `${folder}/solutions/${payload.slug}.${ext}`;
   
@@ -126,7 +121,6 @@ async function handleSyncToGitHub(payload: any) {
     commitMessage
   );
 
-  // 4. Stage 2: Commit the metadata JSON
   const metaPayload: ProblemMetadataPayload = {
     slug: payload.slug,
     title: payload.title,
@@ -141,24 +135,46 @@ async function handleSyncToGitHub(payload: any) {
   };
 
   await pushProblemMetadataJSON(token, repo, folder, metaPayload);
-
-  // 5. Stage 3: Commit the updated README.md indexes
   await updateRepositoryREADME(token, repo, folder, updatedStats);
 
   console.log(`AlgoLens: Solution files and README successfully synced to GitHub for ${payload.title}`);
 
-  // 6. Stage 4: Dispatch anonymous telemetry if not opted out
   if (!settings.optOutTelemetry) {
     dispatchTelemetry(payload);
   }
 }
 
-// Show standard Chrome system notifications on fail (Commit 29)
+// Force a complete rebuild & push of the repository README (Commit 30)
+async function handleForceRebuild(): Promise<void> {
+  const config = await getStorageData([
+    STORAGE_KEYS.GITHUB_TOKEN,
+    STORAGE_KEYS.GITHUB_REPO,
+    STORAGE_KEYS.GITHUB_FOLDER,
+    STORAGE_KEYS.LOCAL_STATS
+  ]);
+
+  const token = config[STORAGE_KEYS.GITHUB_TOKEN];
+  const repo = config[STORAGE_KEYS.GITHUB_REPO];
+  const folder = config[STORAGE_KEYS.GITHUB_FOLDER] || 'leetcode';
+  const localStats = config[STORAGE_KEYS.LOCAL_STATS];
+
+  if (!token || !repo) {
+    throw new Error('Not connected to GitHub');
+  }
+
+  if (!localStats) {
+    throw new Error('No local statistics found to push. Solve a problem first!');
+  }
+
+  console.log('AlgoLens: Force rebuilding README index...');
+  await updateRepositoryREADME(token, repo, folder, localStats);
+}
+
 function showFailureNotification(problemTitle: string, errorMessage: string) {
   if (typeof chrome !== 'undefined' && chrome.notifications) {
     chrome.notifications.create('algolens_sync_failure', {
       type: 'basic',
-      iconUrl: 'index.html', // default fallback context page icon
+      iconUrl: 'index.html',
       title: 'AlgoLens Sync Failed',
       message: `Could not push "${problemTitle}" to GitHub: ${errorMessage}`,
       priority: 2
@@ -166,7 +182,6 @@ function showFailureNotification(problemTitle: string, errorMessage: string) {
   }
 }
 
-// Send anonymous telemetry events to Python/FastAPI backend
 async function dispatchTelemetry(payload: any) {
   try {
     const backendUrl = 'https://algolens-backend.onrender.com/api/submission-event';
@@ -196,15 +211,26 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'SUBMISSION_ACCEPTED') {
     console.log('AlgoLens: Submission message received from content script.');
     
-    // Add item to push queue & process
     pushQueue.push({
       action: message.action,
       payload: message.payload
     });
     
     processQueue();
-    
     sendResponse({ status: 'Queued' });
   }
+
+  if (message.action === 'FORCE_REBUILD_INDEX') {
+    handleForceRebuild()
+      .then(() => {
+        sendResponse({ success: true });
+      })
+      .catch((err) => {
+        console.error('Force rebuild failed:', err);
+        sendResponse({ success: false, error: err.message });
+      });
+    return true; // keeps the message channel open for async response
+  }
+
   return true;
 });

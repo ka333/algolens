@@ -22,6 +22,9 @@ export function DashboardView() {
     streak: 0,
     history: []
   });
+  
+  const [syncing, setSyncing] = useState<boolean>(false);
+  const [syncStatus, setSyncStatus] = useState<string>('');
 
   useEffect(() => {
     async function loadStats() {
@@ -35,10 +38,38 @@ export function DashboardView() {
 
   const totalSolved = stats.easy + stats.medium + stats.hard;
   
-  // Calculate relative percentages for visual progress bars
   const easyPct = totalSolved > 0 ? (stats.easy / totalSolved) * 100 : 0;
   const mediumPct = totalSolved > 0 ? (stats.medium / totalSolved) * 100 : 0;
   const hardPct = totalSolved > 0 ? (stats.hard / totalSolved) * 100 : 0;
+
+  // Trigger manual README rebuild & push (Commit 30)
+  const handleManualRebuild = () => {
+    setSyncing(true);
+    setSyncStatus('Rebuilding index...');
+    
+    if (typeof chrome !== 'undefined' && chrome.runtime) {
+      chrome.runtime.sendMessage({ action: 'FORCE_REBUILD_INDEX' }, (response) => {
+        if (response && response.success) {
+          setSyncStatus('✓ Sync complete!');
+        } else {
+          setSyncStatus('⚠️ Sync failed.');
+        }
+        setTimeout(() => {
+          setSyncing(false);
+          setSyncStatus('');
+        }, 3000);
+      });
+    } else {
+      // Dev preview mockup fallback
+      setTimeout(() => {
+        setSyncStatus('✓ Rebuild mock complete!');
+        setTimeout(() => {
+          setSyncing(false);
+          setSyncStatus('');
+        }, 1500);
+      }, 1000);
+    }
+  };
 
   return (
     <div>
@@ -56,13 +87,24 @@ export function DashboardView() {
         </div>
       </div>
 
-      {/* Difficulty breakdown with Progress Bars */}
+      {/* Manual Sync Button (Commit 30) */}
+      <div style={{ marginBottom: '14px' }}>
+        <button 
+          className="btn-secondary" 
+          onClick={handleManualRebuild}
+          disabled={syncing}
+          style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '10px' }}
+        >
+          <span>{syncing ? syncStatus : '🔄 Force Rebuild README Index'}</span>
+        </button>
+      </div>
+
+      {/* Difficulty breakdown */}
       <div className="card" style={{ marginBottom: '14px' }}>
         <h4 className="card-title" style={{ fontSize: '13px', borderBottom: '1px solid var(--border-color)', paddingBottom: '6px', marginBottom: '10px' }}>
           Difficulty Breakdown
         </h4>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '12px' }}>
-          {/* Easy */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
               <span style={{ color: 'var(--success)' }}>Easy</span>
@@ -72,7 +114,6 @@ export function DashboardView() {
               <div style={{ height: '100%', width: `${easyPct}%`, background: 'var(--success)', borderRadius: '3px', transition: 'width 0.5s ease-out' }}></div>
             </div>
           </div>
-          {/* Medium */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
               <span style={{ color: 'var(--warning)' }}>Medium</span>
@@ -82,7 +123,6 @@ export function DashboardView() {
               <div style={{ height: '100%', width: `${mediumPct}%`, background: 'var(--warning)', borderRadius: '3px', transition: 'width 0.5s ease-out' }}></div>
             </div>
           </div>
-          {/* Hard */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
               <span style={{ color: 'var(--danger)' }}>Hard</span>
