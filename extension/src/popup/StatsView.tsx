@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getStorageData, STORAGE_KEYS } from '../utils/storage';
+import { getStorageData, getAppSettings, STORAGE_KEYS } from '../utils/storage';
 
 interface GlobalComparison {
   slug: string;
@@ -39,8 +39,9 @@ export function StatsView() {
         setUserAttempts(latestSolve.attempts);
 
         // Fetch from live backend API
+        const appSettings = await getAppSettings();
         const response = await fetch(
-          `https://algolens-backend.onrender.com/api/stats/${latestSolve.slug}?solveTime=${latestSolve.solveTimeSeconds}`
+          `${appSettings.backendUrl}/api/stats/${latestSolve.slug}?solveTime=${latestSolve.solveTimeSeconds}`
         );
 
         if (!response.ok) {

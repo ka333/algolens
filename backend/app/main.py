@@ -3,6 +3,7 @@ import time
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from app.db.session import engine, Base
+from app.config import settings
 # Import models to ensure they are registered on Base metadata
 from app.db.models import Problem, SubmissionEvent
 from app.api.endpoints import router as api_router
@@ -23,11 +24,15 @@ app = FastAPI(
 
 app.include_router(api_router)
 
+# Parse allowed CORS origins from environment settings
+origins = [o.strip() for o in settings.cors_origins.split(",") if o.strip()]
+allow_all = "*" in origins
+
 # Enable CORS for browser extensions and README widgets
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=origins,
+    allow_credentials=not allow_all,
     allow_methods=["*"],
     allow_headers=["*"],
 )

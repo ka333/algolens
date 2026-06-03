@@ -4,6 +4,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     # Defaults to local SQLite, overridden in production/development by environment variables
     database_url: str = "sqlite+aiosqlite:///./algolens.db"
+    cors_origins: str = "*"
 
     class Config:
         env_file = ".env"

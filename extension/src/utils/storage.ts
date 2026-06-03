@@ -1,9 +1,11 @@
+/// <reference types="vite/client" />
 // Secure Chrome storage utility with fallback to localStorage for dev server testing
 
 export interface AppSettings {
   autoSync: boolean;
   optOutTelemetry: boolean;
   commitTemplate: string;
+  backendUrl: string;
 }
 
 export const STORAGE_KEYS = {
@@ -19,6 +21,7 @@ const defaultSettings: AppSettings = {
   autoSync: true,
   optOutTelemetry: false,
   commitTemplate: 'solve: [{difficulty}] {title} ({language})',
+  backendUrl: import.meta.env.VITE_BACKEND_URL || 'https://algolens-backend.onrender.com',
 };
 
 // Safe wrapper for chrome.storage.local

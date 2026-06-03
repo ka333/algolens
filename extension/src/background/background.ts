@@ -136,7 +136,7 @@ async function handleSyncToGitHub(payload: any) {
   };
 
   await pushProblemMetadataJSON(token, repo, folder, metaPayload);
-  await updateRepositoryREADME(token, repo, folder, updatedStats);
+  await updateRepositoryREADME(token, repo, folder, updatedStats, settings.backendUrl);
 
   console.log(`AlgoLens: Solution files and README successfully synced to GitHub for ${payload.title}`);
 
@@ -168,7 +168,8 @@ async function handleForceRebuild(): Promise<void> {
   }
 
   console.log('AlgoLens: Force rebuilding README index...');
-  await updateRepositoryREADME(token, repo, folder, localStats);
+  const appSettings = await getAppSettings();
+  await updateRepositoryREADME(token, repo, folder, localStats, appSettings.backendUrl);
 }
 
 function showFailureNotification(problemTitle: string, errorMessage: string) {
@@ -185,7 +186,8 @@ function showFailureNotification(problemTitle: string, errorMessage: string) {
 
 async function dispatchTelemetry(payload: any) {
   try {
-    const backendUrl = 'https://algolens-backend.onrender.com/api/submission-event';
+    const appSettings = await getAppSettings();
+    const backendUrl = `${appSettings.backendUrl}/api/submission-event`;
     const response = await fetch(backendUrl, {
       method: 'POST',
       headers: {

@@ -198,13 +198,18 @@ export const pushProblemMetadataJSON = async (
 // Update README dynamically (Commit 28)
 import { LocalStatsSummary } from './stats';
 
-const generateREADMEStats = (stats: LocalStatsSummary, repo: string, folder: string): string => {
+const generateREADMEStats = (
+  stats: LocalStatsSummary, 
+  repo: string, 
+  folder: string,
+  backendUrl: string
+): string => {
   const total = stats.easy + stats.medium + stats.hard;
   const recentHistory = stats.history.slice(0, 15);
   
   // Custom caching bust timestamp
   const ts = Date.now();
-  const cardUrl = `https://algolens-backend.onrender.com/api/svg/stats?repo=${repo}&easy=${stats.easy}&medium=${stats.medium}&hard=${stats.hard}&streak=${stats.streak}&t=${ts}`;
+  const cardUrl = `${backendUrl}/api/svg/stats?repo=${repo}&easy=${stats.easy}&medium=${stats.medium}&hard=${stats.hard}&streak=${stats.streak}&t=${ts}`;
 
   let markdown = `\n### AlgoLens Coding Stats
 
@@ -237,7 +242,8 @@ export const updateRepositoryREADME = async (
   token: string,
   repo: string,
   folder: string,
-  localStats: LocalStatsSummary
+  localStats: LocalStatsSummary,
+  backendUrl: string = 'https://algolens-backend.onrender.com'
 ): Promise<string> => {
   const prefix = folder ? `${folder}/` : '';
   const path = `${prefix}README.md`;
@@ -256,7 +262,7 @@ export const updateRepositoryREADME = async (
     currentReadmeContent = `# LeetCode Solving Activity\n\nThis repository stores my LeetCode submissions synchronized automatically by AlgoLens.\n\n<!-- algolens:start -->\n<!-- algolens:end -->\n`;
   }
 
-  const generatedSection = generateREADMEStats(localStats, repo, folder);
+  const generatedSection = generateREADMEStats(localStats, repo, folder, backendUrl);
   
   // Regex insertion between tags
   const startMarker = '<!-- algolens:start -->';
