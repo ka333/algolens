@@ -108,10 +108,10 @@ To host your Telemetry API and SVG Card Generator publicly:
 
 ## 📦 Bundling the Extension for Production
 
-Once your Render backend is live:
+Once your backend is live (either on Render or Hugging Face):
 
 1. Open [extension/.env](file:///c:/Users/Karthikeya%20Akhandam/Codes/algolens/extension/.env).
-2. Set `VITE_BACKEND_URL` to your newly deployed Render server URL:
+2. Set `VITE_BACKEND_URL` to your newly deployed server URL:
    ```env
    VITE_BACKEND_URL=https://algolens-backend.onrender.com
    ```
@@ -120,3 +120,80 @@ Once your Render backend is live:
    npm run build
    ```
 4. Load the compiled `/extension/dist` folder into Chrome. The extension is now ready to push solutions and fetch cards from your production cloud stack!
+
+---
+
+## 🤗 Deploying Backend to Hugging Face Spaces (Free 24/7 Hosting)
+
+Hugging Face (HF) Spaces provides free container hosting which is a great, cost-free alternative for deploying the telemetry API.
+
+### Step 1: Create a Hugging Face Space
+1. Sign up or log in at [huggingface.co](https://huggingface.co/).
+2. Click on **Spaces** and choose **Create new Space**.
+3. Configure the Space settings:
+   - **Space Name**: `algolens-backend`
+   - **License**: Choose your preferred license (e.g. `mit`).
+   - **Select the Space SDK**: Click **Docker**.
+   - **Docker template**: Choose **Blank**.
+   - **Space Visibility**: Public.
+4. Click **Create Space**.
+
+### Step 2: Push the Code
+1. Clone the Hugging Face Space repository locally, or link it as a git remote.
+2. Push all the monorepo files (or just the contents of `/backend` to the root of the Space repo).
+   > [!NOTE]
+   > Our `/backend` directory contains a dedicated `Dockerfile` that exposes port `7860` (which Hugging Face Space expects by default) and runs as the non-root user `1000` to satisfy HF permission checks.
+
+### Step 3: Add Environment Variables
+1. Go to your Space **Settings** tab.
+2. Scroll to the **Variables and secrets** section.
+3. Add your environment variables:
+   - **Secret**: `DATABASE_URL` -> Your NeonDB connection string (prefixed with `postgresql+asyncpg://`).
+   - **Variable**: `CORS_ORIGINS` -> Set to `*` or your whitelisted Chrome extension ID.
+
+### Step 4: Keep the Space Awake for Free
+Hugging Face's free tier automatically sleeps after 48 hours of inactivity. To keep your backend active 24/7:
+1. Create a free account on a pinging service like [cron-job.org](https://cron-job.org) or [UptimeRobot](https://uptimerobot.com).
+2. Set up a job to ping your Hugging Face Space's public HTTP endpoint (e.g., `https://<your-username>-algolens-backend.hf.space/docs`) every 30 minutes.
+3. This counts as activity and keeps your server running indefinitely for free.
+
+---
+
+## 🔒 Persistent Extension ID & Free Distribution
+
+Normally, loading an unpacked extension or updating files causes Chrome to change the **Extension ID**. When the ID changes, Chrome isolates the data, causing you to **lose your GitHub Personal Access Token, configured folder, and local streak statistics**.
+
+To prevent this and distribute your extension for free without paying the Chrome Web Store $5 fee:
+
+### Step 1: Lock Your Extension ID
+We can lock the Extension ID by defining a `"key"` field in the `manifest.json`. The ID is mathematically tied to this key, meaning it will never change.
+
+1. Navigate to the `/extension` folder:
+   ```bash
+   cd extension
+   ```
+2. Run our key generation utility script:
+   ```bash
+   node generate-key.js
+   ```
+   *This generates a `private_key.pem` and prints a base64 key block.*
+3. Open `extension/public/manifest.json` and insert the generated `"key"` field at the root level:
+   ```json
+   {
+     "manifest_version": 3,
+     "name": "AlgoLens",
+     "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQ...",
+     "version": "0.1.0"
+     ...
+   }
+   ```
+4. Rebuild the extension and load the `/extension/dist` folder into Chrome.
+5. Your Extension ID is now locked! You can reload it, rename the folder, move it to another computer, or share it with friends—**the login token, preferences, and streaks will never be lost during updates**.
+
+### Step 2: Free Distribution via GitHub Releases
+Since you are not deploying to the Web Store, you can distribute updates to users using GitHub Releases:
+1. Set the `"key"` in the manifest so all your users share the exact same Extension ID.
+2. Compile the extension: `npm run build`.
+3. Zip the `/extension/dist` folder (e.g. `algolens-extension.zip`).
+4. Create a new release in your GitHub repository and attach the zip.
+5. Instruct your users to download the zip, extract it, and simply overwrite their previous installation folder. Chrome will recognize the update, keep the extension ID, and preserve their authentication session seamlessly!
