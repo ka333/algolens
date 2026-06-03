@@ -1,4 +1,4 @@
-// AlgoLens Content Script - Step 1: Timer Tracking
+// AlgoLens Content Script - Step 2: Page Activity Listeners
 let activeTimeSeconds = 0;
 let lastActiveTimestamp = Date.now();
 let isTimerActive = true;
@@ -35,12 +35,35 @@ function stopTimer() {
   }
 }
 
+function pauseTimer() {
+  isTimerActive = false;
+}
+
+function resumeTimer() {
+  isTimerActive = true;
+  lastActiveTimestamp = Date.now();
+}
+
+function setupActivityListeners() {
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      pauseTimer();
+    } else {
+      resumeTimer();
+    }
+  });
+
+  window.addEventListener('blur', pauseTimer);
+  window.addEventListener('focus', resumeTimer);
+}
+
 function init() {
   const slug = getProblemSlug();
   if (slug) {
     currentProblemSlug = slug;
     startTimer();
-    console.log(`AlgoLens: Timer initialized for ${slug}`);
+    setupActivityListeners();
+    console.log(`AlgoLens: Timer & Activity listeners initialized for ${slug}`);
   }
 }
 
