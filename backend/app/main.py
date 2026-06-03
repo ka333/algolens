@@ -2,6 +2,9 @@ import logging
 import time
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from app.db.session import engine, Base
+# Import models to ensure they are registered on Base metadata
+from app.db.models import Problem, SubmissionEvent
 
 # Setup logging config
 logging.basicConfig(
@@ -20,11 +23,19 @@ app = FastAPI(
 # Enable CORS for browser extensions and README widgets
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Allow all origins so Chrome extensions can fetch APIs
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Startup lifecycle trigger to initialize PostgreSQL tables & indices (Commit 35)
+@app.on_event("startup")
+async def on_startup():
+    logger.info("Initializing database tables...")
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    logger.info("Database tables and indices ready.")
 
 # Route logger middleware
 @app.middleware("http")
