@@ -8,6 +8,7 @@ let timerInterval: number | null = null;
 
 let currentProblemSlug = '';
 let attemptCount = 0;
+let submittedCode = '';
 
 // Get problem slug from current window URL
 function getProblemSlug(): string {
@@ -145,7 +146,17 @@ async function fetchProblemMetadata(slug: string): Promise<GraphQLMetadata> {
 
 // 4. MAIN INGESTION PORT & MESSAGING (Commit 20 Coordinate messaging)
 window.addEventListener('message', async (event) => {
-  if (event.source !== window || !event.data || event.data.type !== 'ALGOLENS_SUBMISSION_CHECK') {
+  if (event.source !== window || !event.data) {
+    return;
+  }
+
+  if (event.data.type === 'ALGOLENS_SUBMIT_CODE') {
+    submittedCode = event.data.code;
+    console.log('AlgoLens: Intercepted submitted code.');
+    return;
+  }
+
+  if (event.data.type !== 'ALGOLENS_SUBMISSION_CHECK') {
     return;
   }
 
@@ -173,7 +184,7 @@ window.addEventListener('message', async (event) => {
         title: metadata.title,
         difficulty: metadata.difficulty,
         tags: metadata.tags,
-        code: checkResult.code,
+        code: submittedCode || '// Code not captured',
         language: checkResult.lang,
         runtime: checkResult.runtime,
         memory: checkResult.memory,
