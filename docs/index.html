@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AlgoLens - Privacy-First LeetCode Automations & Benchmarks</title>
+  
+  <!-- Premium Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Custom Premium Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Background Blur Circles -->
+  <div class="blur-glow circles-1"></div>
+  <div class="blur-glow circles-2"></div>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="nav-logo">
+        <img src="logo.png" alt="AlgoLens Logo" class="logo-img" />
+        <span class="logo-text">AlgoLens</span>
+      </div>
+      <nav class="nav-links">
+        <a href="https://github.com/ka333/algolens" class="nav-link">GitHub Code</a>
+        <a href="https://github.com/ka333/algolens/releases" class="nav-link">Download</a>
+        <a href="https://jamessafari-algolens-telemetry.hf.space/docs" class="nav-link demo-badge">Live API Docs</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="section-container hero-container">
+      <div class="hero-content">
+        <span class="tagline">Recruiter & Developer Portfolio</span>
+        <h1 class="hero-title">Privacy-First LeetCode Synchronization Engine</h1>
+        <p class="hero-desc">
+          An automated monorepo application linking browser-intercepted LeetCode submissions directly to GitHub repositories, with serverless PostgreSQL benchmarking analytics and streak card generation.
+        </p>
+        <div class="hero-actions">
+          <a href="https://github.com/ka333/algolens/releases/latest" class="btn btn-primary">Get the Extension (v0.1.0)</a>
+          <a href="#architecture" class="btn btn-secondary">Explore Architecture</a>
+        </div>
+      </div>
+      <div class="hero-graphics">
+        <div class="card glass-card logo-showcase">
+          <img src="logo.png" alt="AlgoLens Large Logo" class="large-logo" />
+          <h3>AlgoLens v0.1.0</h3>
+          <p>Locked ID: <code>nemjhpfoimnonhdinemmpmfkkjokkcil</code></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Product Features -->
+  <section class="section-features" id="features">
+    <div class="section-container">
+      <h2 class="section-headline">Core Application Highlights</h2>
+      <p class="section-subline">Key product details and features implemented across the Chrome Extension and backend telemetry server.</p>
+      
+      <div class="features-grid">
+        <div class="card glass-card feature-card">
+          <div class="feature-icon">🔄</div>
+          <h3>Direct-to-GitHub Sync</h3>
+          <p>Intercepts LeetCode submission payloads, scrapes code draft contents, and pushes clean files directly to the user's repository via GitHub REST APIs.</p>
+        </div>
+        
+        <div class="card glass-card feature-card">
+          <div class="feature-icon">⏱️</div>
+          <h3>Smart Focus Timer</h3>
+          <p>Monitors solve durations using document visibility, focus/blur, and mouse/keyboard activity listeners, pausing automatically to prevent telemetry inflation.</p>
+        </div>
+
+        <div class="card glass-card feature-card">
+          <div class="feature-icon">📊</div>
+          <h3>Dynamic Stats Cards</h3>
+          <p>Compiles easy, medium, hard, and streak counts as query parameters inside Markdown SVG links, rendering real-time profile widgets without database reads.</p>
+        </div>
+
+        <div class="card glass-card feature-card">
+          <div class="feature-icon">🔒</div>
+          <h3>Decentralized Storage</h3>
+          <p>Personal Access Tokens (PATs) are isolated client-side inside <code>chrome.storage.local</code>. No user credentials or profiles are ever sent to the telemetry API.</p>
+        </div>
+
+        <div class="card glass-card feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3>Deduplicated Bulk Sync</h3>
+          <p>Queries LeetCode's paginated GraphQL submission history, groups unique solved problems by language, diffs against existing repository files, and pushes in a rate-limited queue.</p>
+        </div>
+
+        <div class="card glass-card feature-card">
+          <div class="feature-icon">📈</div>
+          <h3>Anonymized Telemetry</h3>
+          <p>Aggregates community solve speeds and attempts anonymously. Calculates percentile curves dynamically to overlay benchmarks on profile SVG cards.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Architectural Showcase (Mermaid Diagrams) -->
+  <section class="section-architecture" id="architecture">
+    <div class="section-container">
+      <h2 class="section-headline">System Architecture & Engineering Decisions</h2>
+      <p class="section-subline">Technical diagrams illustrating the decoupled structure, real-time solve lifecycle, and batch bulk-sync process.</p>
+      
+      <!-- Tech highlight points -->
+      <div class="tech-spotlights">
+        <div class="card glass-card spotlight-card">
+          <h4>💡 Why This Design Is Scalable & Secure</h4>
+          <ul>
+            <li><strong>Zero Identity Database</strong>: The telemetry backend collects no usernames, emails, or profile info. System design complies with strict data safety regulations by storing all private configurations locally.</li>
+            <li><strong>Stateless Rendering</strong>: The SVG stats generation endpoints process URL queries directly. This avoids expensive profile database queries, enabling high-performance card loads.</li>
+            <li><strong>Anti-Sideloading Data Lock</strong>: By implementing Node key generators and defining a custom <code>"key"</code> in the manifest, the extension maintains a permanent Extension ID to secure storage data across developer upgrades.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Diagram Tabs Container -->
+      <div class="diagram-tabs-container">
+        <div class="diagram-tab-header">
+          <button class="tab-btn active" onclick="switchDiagram('block-diag')">System Topology</button>
+          <button class="tab-btn" onclick="switchDiagram('solve-seq')">Real-time Solve Flow</button>
+          <button class="tab-btn" onclick="switchDiagram('bulk-seq')">Bulk Sync Sequence</button>
+        </div>
+        
+        <div class="diagram-view active" id="block-diag">
+          <pre class="mermaid">
+graph TD
+    subgraph Client [Chrome Extension Sandbox]
+        Popup[Popup React UI]
+        Interceptor[Main-world Fetch Interceptor]
+        Content[Isolated-world Content Script]
+        Worker[Background Service Worker]
+    end
+
+    subgraph GitHub [User Repository]
+        GitHubAPI[GitHub REST API]
+        RepoSolutions[leetcode/solutions/*]
+        RepoReadme[leetcode/README.md]
+    end
+
+    subgraph Backend [FastAPI Telemetry Stack]
+        FastAPI[FastAPI Telemetry API]
+        Database[(SQLite / Neon PostgreSQL)]
+    end
+
+    LeetCode[LeetCode.com] -.-> Interceptor
+    Interceptor -- "window.postMessage" --> Content
+    Content -- "chrome.runtime.sendMessage" --> Worker
+    Popup -- "chrome.runtime.sendMessage" --> Worker
+    
+    Worker -- "Secure Commit (PAT)" --> GitHubAPI
+    Worker -- "Anonymous Submit Event" --> FastAPI
+    
+    FastAPI <--> Database
+    RepoReadme -- "Fetch Streak Card SVG" --> FastAPI
+          </pre>
+        </div>
+
+        <div class="diagram-view" id="solve-seq">
+          <pre class="mermaid">
+sequenceDiagram
+    autonumber
+    actor User as User (leetcode.com)
+    participant Page as Page DOM / Monaco Editor
+    participant Int as Fetch Interceptor (MAIN World)
+    participant Content as Content Script (ISOLATED World)
+    participant Background as Service Worker (Background)
+    participant GitHub as GitHub REST API
+    participant Backend as FastAPI Telemetry API
+
+    User->>Page: Type code & click "Submit"
+    Int->>Int: Intercept post to /submit/ & extract typed_code
+    Int-->>Content: window.postMessage(typed_code)
+    LeetCode->>Page: Return submission status (Accepted)
+    Content->>Content: Verify accepted state & finalize focus timer
+    Content-->>Background: chrome.runtime.sendMessage(SubmissionPayload)
+    
+    rect rgb(28, 30, 36)
+        Note over Background: Retrieve GitHub PAT & configuration from Storage
+        par Background to GitHub
+            Background->>GitHub: Create or Update problem code file (solutions/problem-slug.py)
+            Background->>GitHub: Create/Update stats JSON metadata (data/problem-slug.json)
+            Background->>GitHub: Fetch & Update repository index README.md
+        and Background to Telemetry
+            Background->>Backend: POST /api/submission-event (Anonymized analytics)
+        end
+    end
+    
+    GitHub-->>Background: Push Complete (SHA returned)
+    Backend-->>Background: Analytics Recorded
+    Background-->>User: Show Desktop Notification ("Success: Solution pushed!")
+          </pre>
+        </div>
+
+        <div class="diagram-view" id="bulk-seq">
+          <pre class="mermaid">
+sequenceDiagram
+    autonumber
+    actor User as User (Popup UI)
+    participant Popup as React Popup UI
+    participant LeetCode as LeetCode GraphQL API
+    participant Background as Service Worker (Background)
+    participant GitHub as GitHub REST API
+
+    User->>Popup: Open "Bulk Sync" tab & click "Scan Problems"
+    
+    rect rgb(28, 30, 36)
+        Note over Popup: Query LeetCode GraphQL using active tab cookies
+        loop Paginated Submissions Scan
+            Popup->>LeetCode: Query submissionList(offset, limit)
+            LeetCode-->>Popup: Return submissions page (status, lang, title, slug)
+        end
+        Note over Popup: Filter for "Accepted" status
+        Note over Popup: Group by (titleSlug, lang) and select most recent
+    end
+
+    Popup->>GitHub: Fetch repository directory listing
+    GitHub-->>Popup: Return existing files (e.g. solutions/*)
+    Note over Popup: Exclude problems where solution file already exists
+    
+    Popup-->>User: Display list of pending solves (e.g., "12 solutions to sync")
+    User->>Popup: Click "Start Sync"
+
+    rect rgb(28, 30, 36)
+        loop For each unsynced submission (with 1.5s delay to avoid rate limits)
+            Popup->>LeetCode: Query submissionDetails(submissionId)
+            LeetCode-->>Popup: Return source code & execution stats
+            Popup-->>Background: chrome.runtime.sendMessage(SyncRequest)
+            Background->>GitHub: Commit solution file, metadata JSON, and update index README
+            GitHub-->>Background: Commit confirmed
+            Background-->>Popup: Sync success response
+            Popup->>Popup: Increment progress bar & update status table
+        end
+    end
+
+    Popup-->>User: Display "Bulk Sync Completed!"
+          </pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Setup and Installation -->
+  <section class="section-setup" id="setup">
+    <div class="section-container">
+      <h2 class="section-headline">Sideloading Instructions</h2>
+      <p class="section-subline">To distribute this extension without registering for the Web Store, follow these steps:</p>
+      
+      <div class="setup-steps">
+        <div class="setup-step">
+          <div class="step-num">1</div>
+          <div class="step-detail">
+            <h4>Download the Extension Bundle</h4>
+            <p>Download the latest release zip from our <a href="https://github.com/ka333/algolens/releases">GitHub Releases</a> page. Extract the package on your local computer.</p>
+          </div>
+        </div>
+
+        <div class="setup-step">
+          <div class="step-num">2</div>
+          <div class="step-detail">
+            <h4>Load Unpacked in Google Chrome</h4>
+            <p>Navigate to <code>chrome://extensions/</code> in Chrome. Enable the <strong>Developer mode</strong> toggle in the top-right, click <strong>Load unpacked</strong> in the top-left, and select the extracted folder.</p>
+          </div>
+        </div>
+
+        <div class="setup-step">
+          <div class="step-num">3</div>
+          <div class="step-detail">
+            <h4>Lock Your Extension ID (Recommended)</h4>
+            <p>To avoid losing your GitHub login details and streak settings during extension updates, run <code>node generate-key.js</code> in the extension folder and paste the generated public key into your <code>manifest.json</code>.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="section-container footer-container">
+      <p>© 2026 AlgoLens Project. Created by <a href="https://github.com/ka333">ka333</a>.</p>
+      <div class="footer-links">
+        <a href="https://github.com/ka333/algolens">Source Code</a>
+        <a href="https://github.com/ka333/algolens/blob/main/DEPLOYMENT_GUIDE.md">Deployment Guide</a>
+        <a href="https://github.com/ka333/algolens/blob/main/ARCHITECTURE.md">System Design</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Mermaid JS for Diagram compilation -->
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ 
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        background: '#121824',
+        primaryColor: '#3b82f6',
+        secondaryColor: '#8b5cf6',
+        lineColor: '#3b82f6',
+        textColor: '#f3f4f6'
+      }
+    });
+  </script>
+
+  <!-- Tab switcher script -->
+  <script>
+    function switchDiagram(diagramId) {
+      // Hide all views
+      const views = document.querySelectorAll('.diagram-view');
+      views.forEach(v => v.classList.remove('active'));
+
+      // Deactivate all buttons
+      const buttons = document.querySelectorAll('.diagram-tabs-container .tab-btn');
+      buttons.forEach(b => b.classList.remove('active'));
+
+      // Show selected view
+      document.getElementById(diagramId).classList.add('active');
+
+      // Find trigger and active it
+      const event = window.event;
+      if (event && event.currentTarget) {
+        event.currentTarget.classList.add('active');
+      }
+    }
+  </script>
+</body>
+</html>
