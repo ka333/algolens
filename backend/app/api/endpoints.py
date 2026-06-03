@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.db.session import get_db
@@ -6,6 +6,8 @@ from app.db.models import Problem, SubmissionEvent
 from app.api.schemas import SubmissionEventCreate
 from app.services.analytics import get_problem_aggregates, calculate_solve_time_percentile
 from app.api.rate_limiter import rate_limit
+from app.services.svg_renderer import render_stats_card, render_radar_card, render_benchmark_card
+from typing import Dict
 
 router = APIRouter(prefix="/api", dependencies=[Depends(rate_limit)])
 
@@ -70,7 +72,7 @@ async def record_submission_event(
             detail=f"Database commit failed: {str(e)}"
         )
 
-# Fetch stats and calculate percentile comparisons (Commit 41)
+# Fetch stats and calculate percentile comparisons
 @router.get("/stats/{problem}")
 async def get_problem_stats(
     problem: str,
@@ -97,3 +99,51 @@ async def get_problem_stats(
         "avgAttempts": round(db_problem.avg_attempts, 1),
         "percentileEstimate": percentile
     }
+
+# In-memory cache dictionary (Commit 49)
+# Key: string hash of params, Value: (timestamp, svg_string)
+svg_cache: Dict[str, str] = {}
+
+# Dynamic SVG generator route (Commit 48, 49, 50)
+@router.get("/svg/stats")
+async def get_svg_card(
+    response: Response,
+    cardType: str = "profile",
+    easy: int = 0,
+    medium: int = 0,
+    hard: int = 0,
+    streak: int = 0,
+    problem: str | None = None,
+    solveTime: int | None = None,
+    db: AsyncSession = Depends(get_db)
+):
+    # 1. Generate cache key based on query parameters (Commit 49)
+    cache_key = f"{cardType}:{easy}:{medium}:{hard}:{streak}:{problem}:{solveTime}"
+    if cache_key in svg_cache:
+        # Serve from cache directly
+        svg_content = svg_cache[cache_key]
+    else:
+        # Render the correct SVG template
+        if cardType == "benchmark" and problem and solveTime:
+            # Benchmark Card requires fetching NeonDB averages
+            db_problem = await get_problem_aggregates(db, problem)
+            avg_time = db_problem.avg_solve_time if db_problem else float(solveTime * 1.2)
+            percentile = await calculate_solve_time_percentile(db, problem, solveTime)
+            svg_content = render_benchmark_card(float(solveTime), avg_time, percentile)
+        elif cardType == "radar":
+            # Topic Mastery radar card
+            mock_topics = [("Arrays", 85), ("Dynamic Programming", 45), ("Graphs", 60)]
+            svg_content = render_radar_card(mock_topics)
+        else:
+            # Default Profile Stats Card
+            svg_content = render_stats_card(easy, medium, hard, streak)
+            
+        # Store in cache
+        svg_cache[cache_key] = svg_content
+
+    # 2. Add HTTP cache-busting headers to prevent GitHub Camo caching (Commit 50)
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    
+    return Response(content=svg_content, media_type="image/svg+xml")
