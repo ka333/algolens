@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.db.session import engine, Base
 # Import models to ensure they are registered on Base metadata
 from app.db.models import Problem, SubmissionEvent
+from app.api.endpoints import router as api_router
 
 # Setup logging config
 logging.basicConfig(
@@ -19,6 +20,8 @@ app = FastAPI(
     description="Privacy-preserving global solve benchmarking server",
     version="0.1.0"
 )
+
+app.include_router(api_router)
 
 # Enable CORS for browser extensions and README widgets
 app.add_middleware(
