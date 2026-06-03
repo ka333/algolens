@@ -23,7 +23,6 @@ export const validateGitHubToken = async (token: string): Promise<GitHubUser> =>
     throw new Error('Invalid GitHub Personal Access Token');
   }
 
-  // Check scopes from response headers
   const scopesHeader = response.headers.get('x-oauth-scopes') || '';
   const scopes = scopesHeader.split(',').map((s) => s.trim());
   
@@ -58,4 +57,44 @@ export const fetchUserRepos = async (token: string): Promise<GitHubRepo[]> => {
     full_name: repo.full_name,
     private: repo.private,
   }));
+};
+
+// GET Git file details and SHA hashes (Commit 25)
+export interface GitHubFileDetails {
+  sha: string;
+  content?: string;
+  encoding?: string;
+}
+
+export const getGitHubFileDetails = async (
+  token: string,
+  repo: string,
+  path: string
+): Promise<GitHubFileDetails | null> => {
+  try {
+    const response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/vnd.github.v3+json',
+      },
+    });
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch file details: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return {
+      sha: data.sha,
+      content: data.content,
+      encoding: data.encoding,
+    };
+  } catch (err) {
+    console.error(`Error checking file ${path} on GitHub:`, err);
+    return null;
+  }
 };
