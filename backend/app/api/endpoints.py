@@ -142,8 +142,9 @@ async def get_svg_card(
         svg_cache[cache_key] = svg_content
 
     # 2. Add HTTP cache-busting headers to prevent GitHub Camo caching (Commit 50)
-    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
-    response.headers["Pragma"] = "no-cache"
-    response.headers["Expires"] = "0"
-    
-    return Response(content=svg_content, media_type="image/svg+xml")
+    headers = {
+        "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
+        "Pragma": "no-cache",
+        "Expires": "0"
+    }
+    return Response(content=svg_content, media_type="image/svg+xml", headers=headers)

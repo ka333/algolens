@@ -1,10 +1,10 @@
 import pytest
-from httpx import AsyncClient
+from httpx import AsyncClient, ASGITransport
 from app.main import app
 
 @pytest.mark.asyncio
 async def test_e2e_telemetry_and_svg_flow():
-    async with AsyncClient(app=app, base_url="http://test") as ac:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         # 1. Step 1: Health check healthiness verification
         health_res = await ac.get("/")
         assert health_res.status_code == 200
@@ -19,10 +19,7 @@ async def test_e2e_telemetry_and_svg_flow():
         }
         # Post request check
         post_res = await ac.post("/api/submission-event", json=telemetry_payload)
-        # Note: If no live DB connection is up during unit tests, this will return 500,
-        # but validation passes. If validation failed, it would be 422.
-        # We assert it's not 422 (meaning Pydantic accepts the schema correctly).
-        assert post_res.status_code != 422
+        assert post_res.status_code == 201
 
         # 3. Step 3: Verify the SVG Renderer Output
         svg_res = await ac.get(
