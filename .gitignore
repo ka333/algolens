@@ -1,0 +1,45 @@
+# Monorepo gitignore
+
+# Node / Vite / Extension
+node_modules/
+dist/
+dist-extension/
+extension/dist/
+extension/node_modules/
+.env
+.env.*
+*.crx
+*.zip
+
+# Python / FastAPI / Alembic
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+env/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ipynb_checkpoints/
+backend/.venv/
+backend/venv/
+backend/__pycache__/
+
+# Database / System
+*.db
+*.sqlite
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# Local files
+local/
