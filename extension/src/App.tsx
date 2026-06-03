@@ -15,6 +15,15 @@ function App() {
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [username, setUsername] = useState<string>('');
 
+  const openGitHub = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (typeof chrome !== 'undefined' && chrome.tabs) {
+      chrome.tabs.create({ url: 'https://github.com/ka333/algolens' });
+    } else {
+      window.open('https://github.com/ka333/algolens', '_blank');
+    }
+  };
+
   // Function to respond to connections changes in GitHubView
   const handleConnectionChange = (connected: boolean, user: string) => {
     setIsConnected(connected);
@@ -51,12 +60,21 @@ function App() {
     <div className="app-container">
       {/* Header */}
       <header className="app-header">
-        <div className="logo-container">
+        <div className="logo-container" onClick={openGitHub} style={{ cursor: 'pointer' }}>
           <span className="logo-text">AlgoLens</span>
         </div>
-        <div className="status-badge">
-          <span className={`status-dot ${isConnected ? 'connected' : ''}`}></span>
-          <span style={{ fontSize: '11px' }}>{isConnected ? username : 'Disconnected'}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <a 
+            href="https://github.com/ka333/algolens" 
+            onClick={openGitHub} 
+            className="header-github-link"
+          >
+            GitHub
+          </a>
+          <div className="status-badge">
+            <span className={`status-dot ${isConnected ? 'connected' : ''}`}></span>
+            <span style={{ fontSize: '11px' }}>{isConnected ? username : 'Disconnected'}</span>
+          </div>
         </div>
       </header>
 

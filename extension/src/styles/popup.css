@@ -83,6 +83,19 @@ body {
   letter-spacing: -0.5px;
 }
 
+.header-github-link {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: var(--transition-smooth);
+}
+
+.header-github-link:hover {
+  color: var(--text-primary);
+  text-shadow: 0 0 4px rgba(255, 255, 255, 0.2);
+}
+
 .status-badge {
   display: flex;
   align-items: center;
