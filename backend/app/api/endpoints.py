@@ -5,8 +5,9 @@ from app.db.session import get_db
 from app.db.models import Problem, SubmissionEvent
 from app.api.schemas import SubmissionEventCreate
 from app.services.analytics import get_problem_aggregates, calculate_solve_time_percentile
+from app.api.rate_limiter import rate_limit
 
-router = APIRouter(prefix="/api")
+router = APIRouter(prefix="/api", dependencies=[Depends(rate_limit)])
 
 @router.post("/submission-event", status_code=status.HTTP_201_CREATED)
 async def record_submission_event(
