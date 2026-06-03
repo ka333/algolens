@@ -235,6 +235,8 @@ const generateREADMEStats = (
     markdown += `| [${item.title}](https://leetcode.com/problems/${item.slug}/) | ${item.difficulty} | ${item.language} | ${item.attempts} | ${duration} | ${new Date(item.solvedAt).toLocaleDateString()} |\n`;
   });
 
+  markdown += `\n***\n<p align="center">Created and tracked using <a href="https://github.com/ka333/algolens">AlgoLens</a></p>\n`;
+
   return markdown + '\n';
 };
 
