@@ -14,10 +14,15 @@ export default defineConfig({
         popup: resolve(__dirname, 'index.html'),
         background: resolve(__dirname, 'src/background/background.ts'),
         content: resolve(__dirname, 'src/content/content.ts'),
+        interceptor: resolve(__dirname, 'src/content/interceptor.ts'),
       },
       output: {
         entryFileNames: (chunkInfo) => {
-          if (chunkInfo.name === 'background' || chunkInfo.name === 'content') {
+          if (
+            chunkInfo.name === 'background' || 
+            chunkInfo.name === 'content' || 
+            chunkInfo.name === 'interceptor'
+          ) {
             return '[name].js';
           }
           return 'assets/[name]-[hash].js';

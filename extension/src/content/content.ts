@@ -90,38 +90,7 @@ function setupActivityListeners() {
   });
 }
 
-// 2. NETWORK INTERCEPTOR INJECTION
-function injectNetworkInterceptor() {
-  const scriptContent = `
-    (function() {
-      const originalFetch = window.fetch;
-      window.fetch = async function(...args) {
-        const response = await originalFetch.apply(this, args);
-        const url = args[0];
-        
-        if (typeof url === 'string') {
-          // Intercept submission checking requests
-          if (url.includes('/submissions/detail/') && url.includes('/check/')) {
-            const clone = response.clone();
-            clone.json().then(data => {
-              window.postMessage({
-                type: 'ALGOLENS_SUBMISSION_CHECK',
-                data: data,
-                url: url
-              }, '*');
-            }).catch(err => console.error('Error reading json check:', err));
-          }
-        }
-        return response;
-      };
-    })();
-  `;
-
-  const script = document.createElement('script');
-  script.textContent = scriptContent;
-  (document.head || document.documentElement).appendChild(script);
-  script.remove();
-}
+// 2. NETWORK INTERCEPTOR (Handled natively by MAIN world content script)
 
 // 3. FETCH METADATA VIA GRAPHQL
 interface GraphQLMetadata {
@@ -235,7 +204,6 @@ function init() {
     currentProblemSlug = slug;
     startTimer();
     setupActivityListeners();
-    injectNetworkInterceptor();
     console.log(`AlgoLens: Active time tracking started for problem: ${slug}`);
   }
 }
