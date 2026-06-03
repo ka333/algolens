@@ -202,7 +202,7 @@ const generateREADMEStats = (stats: LocalStatsSummary, repo: string, folder: str
   
   // Custom caching bust timestamp
   const ts = Date.now();
-  const cardUrl = `https://algolens-backend.onrender.com/api/svg/stats?repo=${repo}&t=${ts}`;
+  const cardUrl = `https://algolens-backend.onrender.com/api/svg/stats?repo=${repo}&easy=${stats.easy}&medium=${stats.medium}&hard=${stats.hard}&streak=${stats.streak}&t=${ts}`;
 
   let markdown = `\n### AlgoLens Coding Stats
 
