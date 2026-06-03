@@ -209,6 +209,78 @@ async function dispatchTelemetry(payload: any) {
   }
 }
 
+// Handle bulk sync of an individual historical submission (does not rewrite README every time)
+async function handleBulkSyncItem(payload: any): Promise<void> {
+  const config = await getStorageData([
+    STORAGE_KEYS.GITHUB_TOKEN,
+    STORAGE_KEYS.GITHUB_REPO,
+    STORAGE_KEYS.GITHUB_FOLDER
+  ]);
+
+  const token = config[STORAGE_KEYS.GITHUB_TOKEN];
+  const repo = config[STORAGE_KEYS.GITHUB_REPO];
+  const folder = config[STORAGE_KEYS.GITHUB_FOLDER] !== undefined ? config[STORAGE_KEYS.GITHUB_FOLDER] : 'leetcode';
+
+  if (!token || !repo) {
+    throw new Error('GitHub settings are not configured.');
+  }
+
+  const settings = await getAppSettings();
+
+  // 1. Record local stats
+  await recordSubmissionStats({
+    slug: payload.slug,
+    title: payload.title,
+    difficulty: payload.difficulty,
+    language: payload.language,
+    runtime: payload.runtime,
+    memory: payload.memory,
+    solveTimeSeconds: payload.solveTimeSeconds,
+    attempts: payload.attempts,
+    solvedAt: payload.solvedAt
+  });
+
+  // 2. Commit solution file
+  const ext = languageExtensions[payload.language.toLowerCase()] || 'txt';
+  const prefix = folder ? `${folder}/` : '';
+  const solutionPath = `${prefix}solutions/${payload.slug}.${ext}`;
+  
+  const fileDetails = await getGitHubFileDetails(token, repo, solutionPath);
+  const existingSha = fileDetails ? fileDetails.sha : null;
+  
+  const commitMessage = compileCommitMessage(settings.commitTemplate, payload);
+
+  await createOrUpdateGitHubFile(
+    token,
+    repo,
+    solutionPath,
+    payload.code,
+    existingSha,
+    commitMessage
+  );
+
+  // 3. Commit metadata JSON
+  const metaPayload: ProblemMetadataPayload = {
+    slug: payload.slug,
+    title: payload.title,
+    difficulty: payload.difficulty,
+    tags: payload.tags,
+    language: payload.language,
+    runtime: payload.runtime,
+    memory: payload.memory,
+    solveTimeSeconds: payload.solveTimeSeconds,
+    attempts: payload.attempts,
+    solvedAt: payload.solvedAt
+  };
+
+  await pushProblemMetadataJSON(token, repo, folder, metaPayload);
+
+  // 4. Dispatch telemetry (if enabled)
+  if (!settings.optOutTelemetry) {
+    dispatchTelemetry(payload);
+  }
+}
+
 // Listen for solve completion events from content scripts
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'SUBMISSION_ACCEPTED') {
@@ -221,6 +293,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     
     processQueue();
     sendResponse({ status: 'Queued' });
+  }
+
+  if (message.action === 'BULK_SYNC_SUBMISSION') {
+    handleBulkSyncItem(message.payload)
+      .then(() => {
+        sendResponse({ success: true });
+      })
+      .catch((err) => {
+        console.error('Bulk sync item failed:', err);
+        sendResponse({ success: false, error: err.message });
+      });
+    return true; // keeps the message channel open for async response
   }
 
   if (message.action === 'FORCE_REBUILD_INDEX') {
