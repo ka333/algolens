@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.db.session import get_db
@@ -74,7 +74,7 @@ async def record_submission_event(
 @router.get("/stats/{problem}")
 async def get_problem_stats(
     problem: str,
-    solveTime: int | None = None,
+    solveTime: int | None = Query(None, gt=0),
     db: AsyncSession = Depends(get_db)
 ):
     db_problem = await get_problem_aggregates(db, problem)
