@@ -23,11 +23,12 @@ export const validateGitHubToken = async (token: string): Promise<GitHubUser> =>
     throw new Error('Invalid GitHub Personal Access Token');
   }
 
-  const scopesHeader = response.headers.get('x-oauth-scopes') || '';
-  const scopes = scopesHeader.split(',').map((s) => s.trim());
-  
-  if (!scopes.includes('repo')) {
-    throw new Error('Token requires the "repo" scope to push solutions.');
+  const scopesHeader = response.headers.get('x-oauth-scopes');
+  if (scopesHeader !== null) {
+    const scopes = scopesHeader.split(',').map((s) => s.trim());
+    if (!scopes.includes('repo') && !scopes.includes('public_repo')) {
+      throw new Error('Token requires the "repo" scope to push solutions.');
+    }
   }
 
   const data = await response.json();
