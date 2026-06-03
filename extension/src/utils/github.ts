@@ -99,7 +99,7 @@ export const getGitHubFileDetails = async (
   }
 };
 
-// Create or update a file on GitHub (Commit 26)
+// Create or update a file on GitHub
 function toBase64(str: string): string {
   return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) => {
     return String.fromCharCode(parseInt(p1, 16));
@@ -135,4 +135,52 @@ export const createOrUpdateGitHubFile = async (
 
   const data = await response.json();
   return data.content.sha;
+};
+
+// Compile and push problem metadata (Commit 27)
+export interface ProblemMetadataPayload {
+  slug: string;
+  title: string;
+  difficulty: string;
+  tags: string[];
+  language: string;
+  runtime: string;
+  memory: string;
+  solveTimeSeconds: number;
+  attempts: number;
+  solvedAt: string;
+}
+
+export const pushProblemMetadataJSON = async (
+  token: string,
+  repo: string,
+  folder: string,
+  payload: ProblemMetadataPayload
+): Promise<string> => {
+  const path = `${folder}/data/${payload.slug}.json`;
+  
+  // Format the metadata JSON file neatly
+  const metadataContent = JSON.stringify({
+    title: payload.title,
+    difficulty: payload.difficulty,
+    tags: payload.tags,
+    attempts: payload.attempts,
+    solveTimeSeconds: payload.solveTimeSeconds,
+    runtime: payload.runtime,
+    memory: payload.memory,
+    solvedAt: payload.solvedAt,
+  }, null, 2);
+
+  const fileDetails = await getGitHubFileDetails(token, repo, path);
+  const existingSha = fileDetails ? fileDetails.sha : null;
+  const commitMessage = `meta: store stats for ${payload.title} [data/${payload.slug}.json]`;
+
+  return await createOrUpdateGitHubFile(
+    token,
+    repo,
+    path,
+    metadataContent,
+    existingSha,
+    commitMessage
+  );
 };
