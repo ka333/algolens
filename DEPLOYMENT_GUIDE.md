@@ -4,6 +4,35 @@ This guide details how to configure, run, and deploy the **AlgoLens** FastAPI te
 
 ---
 
+## 📂 Monorepo Layout
+
+- `/extension`: The Google Chrome Extension built using Vite, React, and TypeScript.
+- `/backend`: The Telemetry API & SVG rendering server built using Python, FastAPI, and NeonDB.
+- `/local`: Local specifications and references.
+
+---
+
+## 🛠️ Chrome Extension Installation (From Source)
+
+To build and load the Chrome Extension locally in developer mode:
+
+1. Clone this repository to your local machine.
+2. Navigate to the `/extension` directory and install the dependencies:
+   ```bash
+   npm install
+   ```
+3. Compile the extension build bundle:
+   ```bash
+   npm run build
+   ```
+4. Open Google Chrome and navigate to `chrome://extensions/`.
+5. Enable **Developer mode** using the toggle in the top-right corner.
+6. Click **Load unpacked** in the top-left corner.
+7. Select the `extension/dist` folder inside this repository.
+8. AlgoLens is now active! Click the extension icon in your toolbar to configure.
+
+---
+
 ## 🌐 Local Development & Testing
 
 We have built a zero-configuration local testing flow that uses **SQLite** natively so you do not need a running PostgreSQL server on your machine to iterate.
