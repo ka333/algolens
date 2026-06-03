@@ -4,6 +4,7 @@ from sqlalchemy.future import select
 from app.db.session import get_db
 from app.db.models import Problem, SubmissionEvent
 from app.api.schemas import SubmissionEventCreate
+from app.services.analytics import get_problem_aggregates, calculate_solve_time_percentile
 
 router = APIRouter(prefix="/api")
 
@@ -67,3 +68,31 @@ async def record_submission_event(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Database commit failed: {str(e)}"
         )
+
+# Fetch stats and calculate percentile comparisons (Commit 41)
+@router.get("/stats/{problem}")
+async def get_problem_stats(
+    problem: str,
+    solveTime: int | None = None,
+    db: AsyncSession = Depends(get_db)
+):
+    db_problem = await get_problem_aggregates(db, problem)
+    if not db_problem:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No telemetry data found for problem: {problem}"
+        )
+    
+    percentile = 50.0
+    if solveTime is not None:
+        percentile = await calculate_solve_time_percentile(db, problem, solveTime)
+
+    return {
+        "slug": db_problem.slug,
+        "difficulty": db_problem.difficulty,
+        "totalSubmissions": db_problem.total_submissions,
+        "acceptedCount": db_problem.accepted_count,
+        "avgSolveTime": round(db_problem.avg_solve_time, 1),
+        "avgAttempts": round(db_problem.avg_attempts, 1),
+        "percentileEstimate": percentile
+    }
