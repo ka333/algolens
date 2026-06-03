@@ -100,6 +100,39 @@ export const getGitHubFileDetails = async (
   }
 };
 
+// Fetch directory contents to list files in a folder
+export const getGitHubDirectoryList = async (
+  token: string,
+  repo: string,
+  path: string
+): Promise<string[]> => {
+  try {
+    const response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/vnd.github.v3+json',
+      },
+    });
+
+    if (response.status === 404) {
+      return [];
+    }
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch directory contents: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    if (Array.isArray(data)) {
+      return data.map((file: any) => file.name);
+    }
+    return [];
+  } catch (err) {
+    console.error(`Error fetching directory ${path} from GitHub:`, err);
+    return [];
+  }
+};
+
 // Create or update a file on GitHub
 function toBase64(str: string): string {
   return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) => {
