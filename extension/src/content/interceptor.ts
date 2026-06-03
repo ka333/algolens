@@ -4,14 +4,25 @@
     const response = await originalFetch.apply(this, args);
     const url = args[0];
     
+    let urlString = '';
     if (typeof url === 'string') {
-      if (url.includes('/submissions/detail/') && url.includes('/check/')) {
+      urlString = url;
+    } else if (url && typeof url === 'object') {
+      if ('url' in url) {
+        urlString = (url as any).url;
+      } else if (typeof url.toString === 'function') {
+        urlString = url.toString();
+      }
+    }
+
+    if (urlString) {
+      if (urlString.includes('/submissions/detail/') && urlString.includes('/check/')) {
         const clone = response.clone();
         clone.json().then(data => {
           window.postMessage({
             type: 'ALGOLENS_SUBMISSION_CHECK',
             data: data,
-            url: url
+            url: urlString
           }, '*');
         }).catch(err => console.error('Error reading json check:', err));
       }
