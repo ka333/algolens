@@ -106,6 +106,15 @@ function toBase64(str: string): string {
   }));
 }
 
+function fromBase64(str: string): string {
+  return decodeURIComponent(
+    atob(str.replace(/\s/g, ''))
+      .split('')
+      .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+      .join('')
+  );
+}
+
 export const createOrUpdateGitHubFile = async (
   token: string,
   repo: string,
@@ -137,7 +146,7 @@ export const createOrUpdateGitHubFile = async (
   return data.content.sha;
 };
 
-// Compile and push problem metadata (Commit 27)
+// Compile and push problem metadata
 export interface ProblemMetadataPayload {
   slug: string;
   title: string;
@@ -159,7 +168,6 @@ export const pushProblemMetadataJSON = async (
 ): Promise<string> => {
   const path = `${folder}/data/${payload.slug}.json`;
   
-  // Format the metadata JSON file neatly
   const metadataContent = JSON.stringify({
     title: payload.title,
     difficulty: payload.difficulty,
@@ -180,6 +188,98 @@ export const pushProblemMetadataJSON = async (
     repo,
     path,
     metadataContent,
+    existingSha,
+    commitMessage
+  );
+};
+
+// Update README dynamically (Commit 28)
+import { LocalStatsSummary } from './stats';
+
+const generateREADMEStats = (stats: LocalStatsSummary, repo: string, folder: string): string => {
+  const total = stats.easy + stats.medium + stats.hard;
+  const recentHistory = stats.history.slice(0, 15);
+  
+  // Custom caching bust timestamp
+  const ts = Date.now();
+  const cardUrl = `https://algolens-backend.onrender.com/api/svg/stats?repo=${repo}&t=${ts}`;
+
+  let markdown = `\n### AlgoLens Coding Stats
+
+<p align="center">
+  <img src="${cardUrl}" alt="AlgoLens Benchmarks" width="400" />
+</p>
+
+#### Progress Overview
+- **Streaks**: ${stats.streak} 🔥
+- **Total Problems Solved**: ${total}
+- **Breakdown**: Easy: ${stats.easy} | Medium: ${stats.medium} | Hard: ${stats.hard}
+
+#### Recent Solves
+| Title | Difficulty | Language | Attempts | Solve Duration | Date |
+| :--- | :---: | :---: | :---: | :---: | :--- |
+`;
+
+  recentHistory.forEach((item) => {
+    const duration = item.solveTimeSeconds < 60 
+      ? `${item.solveTimeSeconds}s` 
+      : `${Math.floor(item.solveTimeSeconds / 60)}m ${item.solveTimeSeconds % 60}s`;
+      
+    markdown += `| [${item.title}](https://leetcode.com/problems/${item.slug}/) | ${item.difficulty} | ${item.language} | ${item.attempts} | ${duration} | ${new Date(item.solvedAt).toLocaleDateString()} |\n`;
+  });
+
+  return markdown + '\n';
+};
+
+export const updateRepositoryREADME = async (
+  token: string,
+  repo: string,
+  folder: string,
+  localStats: LocalStatsSummary
+): Promise<string> => {
+  const path = `${folder}/README.md`;
+  
+  const fileDetails = await getGitHubFileDetails(token, repo, path);
+  let currentReadmeContent = '';
+  let existingSha: string | null = null;
+
+  if (fileDetails) {
+    existingSha = fileDetails.sha;
+    if (fileDetails.content) {
+      currentReadmeContent = fromBase64(fileDetails.content);
+    }
+  } else {
+    // Default README structure if none exists
+    currentReadmeContent = `# LeetCode Solving Activity\n\nThis repository stores my LeetCode submissions synchronized automatically by AlgoLens.\n\n<!-- algolens:start -->\n<!-- algolens:end -->\n`;
+  }
+
+  const generatedSection = generateREADMEStats(localStats, repo, folder);
+  
+  // Regex insertion between tags
+  const startMarker = '<!-- algolens:start -->';
+  const endMarker = '<!-- algolens:end -->';
+  
+  const startIndex = currentReadmeContent.indexOf(startMarker);
+  const endIndex = currentReadmeContent.indexOf(endMarker);
+
+  let updatedReadme = '';
+  if (startIndex !== -1 && endIndex !== -1) {
+    updatedReadme = 
+      currentReadmeContent.substring(0, startIndex + startMarker.length) +
+      generatedSection +
+      currentReadmeContent.substring(endIndex);
+  } else {
+    // If tags are not found, append them to the bottom
+    updatedReadme = currentReadmeContent + `\n\n${startMarker}${generatedSection}${endMarker}\n`;
+  }
+
+  const commitMessage = `docs: update solving metrics and indexes in README.md`;
+  
+  return await createOrUpdateGitHubFile(
+    token,
+    repo,
+    path,
+    updatedReadme,
     existingSha,
     commitMessage
   );
