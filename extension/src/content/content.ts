@@ -1,4 +1,4 @@
-// AlgoLens Content Script - Step 4: Network Interception Injection
+// AlgoLens Content Script - Step 5: GraphQL Metadata Extraction
 let activeTimeSeconds = 0;
 let lastActiveTimestamp = Date.now();
 let isTimerActive = true;
@@ -82,7 +82,6 @@ function setupActivityListeners() {
   });
 }
 
-// Intercept fetch queries on leetcode.com
 function injectNetworkInterceptor() {
   const scriptContent = `
     (function() {
@@ -114,6 +113,56 @@ function injectNetworkInterceptor() {
   script.remove();
 }
 
+// Fetch difficulty & topic tags from LeetCode GraphQL API
+interface GraphQLMetadata {
+  title: string;
+  difficulty: string;
+  tags: string[];
+}
+
+async function fetchProblemMetadata(slug: string): Promise<GraphQLMetadata> {
+  const query = `
+    query questionData($titleSlug: String!) {
+      question(titleSlug: $titleSlug) {
+        title
+        difficulty
+        topicTags {
+          name
+        }
+      }
+    }
+  `;
+
+  try {
+    const response = await fetch('https://leetcode.com/graphql', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query,
+        variables: { titleSlug: slug }
+      })
+    });
+
+    const result = await response.json();
+    const question = result.data.question;
+    
+    return {
+      title: question.title,
+      difficulty: question.difficulty,
+      tags: question.topicTags.map((t: any) => t.name)
+    };
+  } catch (err) {
+    console.error('Failed to fetch problem metadata via GraphQL:', err);
+    return {
+      title: slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+      difficulty: 'Unknown',
+      tags: []
+    };
+  }
+}
+
 function init() {
   const slug = getProblemSlug();
   if (slug) {
@@ -121,7 +170,6 @@ function init() {
     startTimer();
     setupActivityListeners();
     injectNetworkInterceptor();
-    console.log(`AlgoLens: Interceptor injected for ${slug}`);
   }
 }
 
