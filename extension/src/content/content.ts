@@ -183,12 +183,16 @@ window.addEventListener('message', async (event) => {
       };
 
       // Coordinate content-to-background runtime messaging (Commit 20)
-      chrome.runtime.sendMessage({
-        action: 'SUBMISSION_ACCEPTED',
-        payload: payload
-      }, (response) => {
-        console.log('AlgoLens: Background response received:', response);
-      });
+      if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+        chrome.runtime.sendMessage({
+          action: 'SUBMISSION_ACCEPTED',
+          payload: payload
+        }, (response) => {
+          console.log('AlgoLens: Background response received:', response);
+        });
+      } else {
+        console.warn('AlgoLens: Extension context invalidated. Please refresh the page to sync your solution!');
+      }
 
       // Reset for next solve/retries
       attemptCount = 0;
