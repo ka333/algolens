@@ -1,4 +1,4 @@
-// AlgoLens Content Script - Step 3: Inactivity/Idle Detection
+// AlgoLens Content Script - Step 4: Network Interception Injection
 let activeTimeSeconds = 0;
 let lastActiveTimestamp = Date.now();
 let isTimerActive = true;
@@ -59,7 +59,6 @@ function resetIdleTimer() {
     window.clearTimeout(idleTimer);
   }
 
-  // Set idle timeout to 2 minutes
   idleTimer = window.setTimeout(() => {
     isIdle = true;
   }, 120000);
@@ -77,11 +76,42 @@ function setupActivityListeners() {
   window.addEventListener('blur', pauseTimer);
   window.addEventListener('focus', resumeTimer);
 
-  // User input listener resets the idle state
   const inputs = ['mousemove', 'keydown', 'click', 'scroll'];
   inputs.forEach(event => {
     window.addEventListener(event, resetIdleTimer, { passive: true });
   });
+}
+
+// Intercept fetch queries on leetcode.com
+function injectNetworkInterceptor() {
+  const scriptContent = `
+    (function() {
+      const originalFetch = window.fetch;
+      window.fetch = async function(...args) {
+        const response = await originalFetch.apply(this, args);
+        const url = args[0];
+        
+        if (typeof url === 'string') {
+          if (url.includes('/submissions/detail/') && url.includes('/check/')) {
+            const clone = response.clone();
+            clone.json().then(data => {
+              window.postMessage({
+                type: 'ALGOLENS_SUBMISSION_CHECK',
+                data: data,
+                url: url
+              }, '*');
+            }).catch(err => console.error('Error reading json check:', err));
+          }
+        }
+        return response;
+      };
+    })();
+  `;
+
+  const script = document.createElement('script');
+  script.textContent = scriptContent;
+  (document.head || document.documentElement).appendChild(script);
+  script.remove();
 }
 
 function init() {
@@ -90,7 +120,8 @@ function init() {
     currentProblemSlug = slug;
     startTimer();
     setupActivityListeners();
-    console.log(`AlgoLens: Inactivity listeners initialized for ${slug}`);
+    injectNetworkInterceptor();
+    console.log(`AlgoLens: Interceptor injected for ${slug}`);
   }
 }
 
