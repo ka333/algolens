@@ -167,7 +167,8 @@ export const pushProblemMetadataJSON = async (
   folder: string,
   payload: ProblemMetadataPayload
 ): Promise<string> => {
-  const path = `${folder}/data/${payload.slug}.json`;
+  const prefix = folder ? `${folder}/` : '';
+  const path = `${prefix}data/${payload.slug}.json`;
   
   const metadataContent = JSON.stringify({
     title: payload.title,
@@ -238,7 +239,8 @@ export const updateRepositoryREADME = async (
   folder: string,
   localStats: LocalStatsSummary
 ): Promise<string> => {
-  const path = `${folder}/README.md`;
+  const prefix = folder ? `${folder}/` : '';
+  const path = `${prefix}README.md`;
   
   const fileDetails = await getGitHubFileDetails(token, repo, path);
   let currentReadmeContent = '';

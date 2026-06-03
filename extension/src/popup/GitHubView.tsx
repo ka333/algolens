@@ -42,7 +42,11 @@ export function GitHubView({ onConnectionChange }: GitHubViewProps) {
       if (data[STORAGE_KEYS.GITHUB_TOKEN]) {
         setConnectedUser(data[STORAGE_KEYS.GITHUB_USERNAME] || 'Connected');
         setConnectedRepo(data[STORAGE_KEYS.GITHUB_REPO] || '');
-        setConnectedFolder(data[STORAGE_KEYS.GITHUB_FOLDER] || 'leetcode');
+        setConnectedFolder(
+          data[STORAGE_KEYS.GITHUB_FOLDER] !== undefined 
+            ? data[STORAGE_KEYS.GITHUB_FOLDER] 
+            : 'leetcode'
+        );
         
         // Fetch repositories list in the background
         try {
@@ -93,11 +97,11 @@ export function GitHubView({ onConnectionChange }: GitHubViewProps) {
     try {
       await setStorageData({
         [STORAGE_KEYS.GITHUB_REPO]: selectedRepo,
-        [STORAGE_KEYS.GITHUB_FOLDER]: folderPath.trim() || 'leetcode',
+        [STORAGE_KEYS.GITHUB_FOLDER]: folderPath.trim(),
       });
 
       setConnectedRepo(selectedRepo);
-      setConnectedFolder(folderPath.trim() || 'leetcode');
+      setConnectedFolder(folderPath.trim());
     } catch (err) {
       setError('Failed to save repository settings.');
     }
@@ -144,7 +148,7 @@ export function GitHubView({ onConnectionChange }: GitHubViewProps) {
             Repository: <strong style={{ color: 'var(--text-primary)' }}>{connectedRepo}</strong>
           </p>
           <p style={{ color: 'var(--text-secondary)' }}>
-            Target Folder: <strong style={{ color: 'var(--text-primary)' }}>{connectedFolder}/</strong>
+            Target Folder: <strong style={{ color: 'var(--text-primary)' }}>{connectedFolder ? `${connectedFolder}/` : '[Repository Root]'}</strong>
           </p>
         </div>
         <button 

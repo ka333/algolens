@@ -78,7 +78,7 @@ async function handleSyncToGitHub(payload: any) {
 
   const token = config[STORAGE_KEYS.GITHUB_TOKEN];
   const repo = config[STORAGE_KEYS.GITHUB_REPO];
-  const folder = config[STORAGE_KEYS.GITHUB_FOLDER] || 'leetcode';
+  const folder = config[STORAGE_KEYS.GITHUB_FOLDER] !== undefined ? config[STORAGE_KEYS.GITHUB_FOLDER] : 'leetcode';
 
   if (!token || !repo) {
     throw new Error('GitHub settings are not configured in the extension.');
@@ -105,7 +105,8 @@ async function handleSyncToGitHub(payload: any) {
   });
 
   const ext = languageExtensions[payload.language.toLowerCase()] || 'txt';
-  const solutionPath = `${folder}/solutions/${payload.slug}.${ext}`;
+  const prefix = folder ? `${folder}/` : '';
+  const solutionPath = `${prefix}solutions/${payload.slug}.${ext}`;
   
   const fileDetails = await getGitHubFileDetails(token, repo, solutionPath);
   const existingSha = fileDetails ? fileDetails.sha : null;
@@ -155,7 +156,7 @@ async function handleForceRebuild(): Promise<void> {
 
   const token = config[STORAGE_KEYS.GITHUB_TOKEN];
   const repo = config[STORAGE_KEYS.GITHUB_REPO];
-  const folder = config[STORAGE_KEYS.GITHUB_FOLDER] || 'leetcode';
+  const folder = config[STORAGE_KEYS.GITHUB_FOLDER] !== undefined ? config[STORAGE_KEYS.GITHUB_FOLDER] : 'leetcode';
   const localStats = config[STORAGE_KEYS.LOCAL_STATS];
 
   if (!token || !repo) {
