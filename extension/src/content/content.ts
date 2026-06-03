@@ -1,4 +1,4 @@
-// AlgoLens Content Script - Step 5: GraphQL Metadata Extraction
+// AlgoLens Content Script - Step 6: Extract Code and Results from Intercepted Payload
 let activeTimeSeconds = 0;
 let lastActiveTimestamp = Date.now();
 let isTimerActive = true;
@@ -113,7 +113,6 @@ function injectNetworkInterceptor() {
   script.remove();
 }
 
-// Fetch difficulty & topic tags from LeetCode GraphQL API
 interface GraphQLMetadata {
   title: string;
   difficulty: string;
@@ -162,6 +161,21 @@ async function fetchProblemMetadata(slug: string): Promise<GraphQLMetadata> {
     };
   }
 }
+
+// Listen for messages from page context, extract solution code & details
+window.addEventListener('message', async (event) => {
+  if (event.source !== window || !event.data || event.data.type !== 'ALGOLENS_SUBMISSION_CHECK') {
+    return;
+  }
+
+  const checkResult = event.data.data;
+  
+  if (checkResult.state === 'SUCCESS') {
+    const code = checkResult.code; // Extract Monaco editor code submitted to LeetCode API
+    const lang = checkResult.lang; // Extract code language
+    console.log('AlgoLens: Extracted solution code successfully. Length:', code ? code.length : 0, 'Lang:', lang);
+  }
+});
 
 function init() {
   const slug = getProblemSlug();
